@@ -54,4 +54,4 @@ steps:
     containerRegistry: 'acrapidemoemanoel'
     repository: 'api-dio-test'
     command: 'buildAndPush'
-    Dockerfile: 'apitempodio/APITempoDIO/Dockerfile'
+    Dockerfile: './apitempodio/APITempoDIO/Dockerfile'
