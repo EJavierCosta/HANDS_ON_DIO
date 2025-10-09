@@ -1,11 +1,10 @@
 # ----------------------------------------------------
 # Estágio 1: Build (Construção)
-# Usa o SDK completo do .NET para compilar o código
 # ----------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o arquivo de projeto e restaura as dependências (otimização de cache)
+# Copia o arquivo de projeto e restaura as dependências
 COPY ["APITempoDIO.csproj", "."] 
 RUN dotnet restore "APITempoDIO.csproj"
 
@@ -14,17 +13,15 @@ COPY . .
 RUN dotnet publish "APITempoDIO.csproj" -c Release -o /app/publish
 
 # ----------------------------------------------------
-# Estágio 2: Final (Runtime de Produção)
-# Usa apenas o ambiente de execução e as configurações corretas
+# Estágio 2: Final (Runtime de Produção) - USA APENAS A PORTA 80
 # ----------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-EXPOSE 8080
 
-# CONFIGURAÇÃO CRUCIAL:
-# 1. Garante que o Kestrel escute em todas as interfaces (necessário para o Docker)
-# 2. Ativa o ambiente de Desenvolvimento (necessário para o Swagger UI)
-ENV ASPNETCORE_URLS=http://+:8080
+# CONFIGURAÇÃO DE PORTA ÚNICA E CORRETA PARA AZURE APP SERVICE:
+# O Azure App Service espera que a porta de exposição seja a 80
+EXPOSE 80
+ENV ASPNETCORE_URLS=http://+:80
 ENV DOTNET_ENVIRONMENT=Development
 
 # Copia APENAS os arquivos publicados do estágio 'build'
