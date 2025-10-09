@@ -4,7 +4,9 @@ trigger:
 - main # Define que o pipeline será executado a cada push no branch 'main'
 
 pool:
-  vmImage: 'ubuntu-latest' # Define a imagem da VM do agente. 'windows-latest' ou 'macos-latest' também são opções.
+  name: 'Default' # Assumindo que seu agente EJAC está no pool 'Default'
+  demands: 
+  - agent.name -equals EJAC # Garante que apenas o seu agente específico (EJAC) seja usado
 
 variables:
   # Caminho para o arquivo .sln da sua solução
