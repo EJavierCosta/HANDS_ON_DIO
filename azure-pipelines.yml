@@ -1,0 +1,57 @@
+# azure-pipelines.yml
+
+trigger:
+- main # Define que o pipeline será executado a cada push no branch 'main'
+
+pool:
+  vmImage: 'ubuntu-latest' # Define a imagem da VM do agente. 'windows-latest' ou 'macos-latest' também são opções.
+
+variables:
+  # Caminho para o arquivo .sln da sua solução
+  # Ajuste 'APITempoDIO.sln' se o nome do seu arquivo de solução for diferente
+  solution: '**/*.sln' 
+  buildConfiguration: 'Release' # Configuração de build (Debug ou Release)
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Instalar .Net SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.x' # Garante que a versão 8 do SDK do .NET seja instalada
+
+- script: dotnet restore $(solution)
+  displayName: 'Restaurar Solução'
+
+- script: dotnet build $(solution) --configuration $(buildConfiguration)
+  displayName: 'Build Solução'
+
+# Passo para executar testes e coletar cobertura de código
+# A opção '--collect "XPlat Code Coverage"' usa o Coverlet integrado (ou similar)
+# Certifique-se de que seus projetos de teste tenham as dependências Coverlet necessárias.
+- script: dotnet test $(solution) --configuration $(buildConfiguration) --no-build --collect "XPlat Code Coverage"
+  displayName: 'Executar Testes e Coletar Cobertura'
+
+# Opcional: Publicar os resultados dos testes e da cobertura de código
+# Este passo ajuda a visualizar os resultados diretamente no Azure Pipelines.
+- task: PublishTestResults@2
+  displayName: 'Publicar Resultados dos Testes'
+  inputs:
+    testResultsFormat: 'VSTest'
+    testResultsFiles: '**/*.trx' # Caminho para os arquivos de resultados de testes gerados pelo 'dotnet test'
+    mergeTestResults: true
+    failTaskOnFailedTests: true # Opcional: Faz o pipeline falhar se houver testes com falha
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publicar Resultados da Cobertura de Código'
+  inputs:
+    codeCoverageTool: 'Cobertura' # Ou 'JaCoCo', 'Istanbul' dependendo do formato de saída do Coverlet
+    summaryFileLocation: '$(Build.SourcesDirectory)/**/coverage.cobertura.xml' # Caminho para o arquivo de cobertura gerado pelo Coverlet
+    reportDirectory: '$(Build.SourcesDirectory)' # Opcional: Diretório onde os relatórios HTML podem estar
+
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'acrapidemoemanoel'
+    repository: 'api-dio-test'
+    command: 'buildAndPush'
+    Dockerfile: 'apitempodio/APITempoDIO/Dockerfile'
