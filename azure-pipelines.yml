@@ -9,13 +9,11 @@ pool:
   - agent.name -equals EJAC 
 
 variables:
-  # CORREÇÃO 1: Caminho Exato do arquivo de solução (SLN)
   solution: 'apitempodio/APITempoDIO/APITempoDIO.sln' 
+  buildPlataform: 'Any CPU'
   buildConfiguration: 'Release'
   
 steps:
-- checkout: self
-  displayName: 'Checkout do Repositório'
 
 - task: UseDotNet@2
   displayName: 'Instalar .Net SDK'
@@ -24,13 +22,13 @@ steps:
     version: '8.x'
 
 - script: dotnet restore $(solution)
-  displayName: 'Restaurar Solution'
+  displayName: 'Restore Solution'
 
 - script: dotnet build $(solution) --configuration $(buildConfiguration)
   displayName: 'Build Solution'
 
 - script: dotnet test $(solution) --configuration $(buildConfiguration) --no-build --collect "XPlat Code Coverage"
-  displayName: 'Executar Testes e Coletar Cobertura'
+  displayName: 'Build Solution'
 
 - task: Docker@2
   displayName: 'Build e Push para ACR'
