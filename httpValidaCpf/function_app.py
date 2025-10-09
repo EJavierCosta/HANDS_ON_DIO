@@ -64,18 +64,14 @@ def HttpValidaCpf(req: func.HttpRequest) -> func.HttpResponse:
 
     # 2. Valida o CPF
     if validar_cpf(cpf_input):
-        resultado = {
-            "status": "sucesso",
-            "cpf": cpf_input,
-            "valido": True,
+        resultado = {            
+            "cpf": cpf_input,            
             "mensagem": "CPF válido."
         }
         status_code = 200
     else:
         resultado = {
-            "status": "erro",
             "cpf": cpf_input,
-            "valido": False,
             "mensagem": "CPF inválido."
         }
         status_code = 400
