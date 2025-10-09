@@ -1,25 +1,27 @@
 # azure-pipelines.yml
 
 trigger:
-- main # Define que o pipeline será executado a cada push no branch 'main'
+- main
 
 pool:
-  name: 'Default' # Assumindo que seu agente EJAC está no pool 'Default'
+  name: 'Default' 
   demands: 
-  - agent.name -equals EJAC # Garante que apenas o seu agente específico (EJAC) seja usado
+  - agent.name -equals EJAC 
 
 variables:
-  # Caminho para o arquivo .sln da sua solução
-  # Ajuste 'APITempoDIO.sln' se o nome do seu arquivo de solução for diferente
-  solution: '**/*.sln' 
-  buildConfiguration: 'Release' # Configuração de build (Debug ou Release)
-
+  # CORREÇÃO 1: Caminho Exato do arquivo de solução (SLN)
+  solution: 'apitempodio/APITempoDIO/APITempoDIO.sln' 
+  buildConfiguration: 'Release'
+  
 steps:
+- checkout: self
+  displayName: 'Checkout do Repositório'
+
 - task: UseDotNet@2
   displayName: 'Instalar .Net SDK'
   inputs:
     packageType: 'sdk'
-    version: '8.x' 
+    version: '8.x'
 
 - script: dotnet restore $(solution)
   displayName: 'Restaurar Solution'
@@ -28,11 +30,15 @@ steps:
   displayName: 'Build Solution'
 
 - script: dotnet test $(solution) --configuration $(buildConfiguration) --no-build --collect "XPlat Code Coverage"
-  displayName: 'Build Solution'
+  displayName: 'Executar Testes e Coletar Cobertura'
 
 - task: Docker@2
+  displayName: 'Build e Push para ACR'
   inputs:
     containerRegistry: 'acrapidemoemanoel'
     repository: 'api-dio-test'
     command: 'buildAndPush'
-    Dockerfile: './apitempodio/APITempoDIO/Dockerfile'
+    Dockerfile: 'apitempodio/APITempoDIO/Dockerfile' 
+    tags: |
+      $(Build.BuildId)
+      latest
