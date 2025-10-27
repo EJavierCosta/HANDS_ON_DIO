@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Cards</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-4">
+        <div class="row" id="movie-cards"></div>
+    </div>
+
+    <div class="modal fade" id="movieModal" tabindex="-1" aria-labelledby="movieModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="movieModalLabel">Movie Detail</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <video id="movieVideo" controls style="width: 100%;">
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fetch movies and display as cards
+        async function fetchMovies() {
+            try {
+                // Chama o endpoint para listar todos os filmes
+                const response = await fetch('http://localhost:7250/api/all');
+                const movies = await response.json();
+
+                const movieCards = document.getElementById('movie-cards');
+                movieCards.innerHTML = ''; // Limpa o container antes de adicionar os novos cartões
+
+                movies.forEach(movie => {
+                    const card = document.createElement('div');
+                    card.classList.add('col-md-4', 'mb-4');
+                    card.innerHTML = `
+                        <div class="card" data-id="${movie.id}" style="cursor: pointer;">
+                            <img src="${movie.thumb}" class="card-img-top" alt="${movie.title}">
+                            <div class="card-body">
+                                <h5 class="card-title">${movie.title}</h5>
+                            </div>
+                        </div>
+                    `;
+
+                    // Adiciona um listener de clique para buscar o detalhe do filme
+                    card.addEventListener('click', () => fetchMovieDetail(movie.id));
+                    movieCards.appendChild(card);
+                }); // Fecha o forEach
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+            } 
+        } // Fecha a função async function fetchMovies()
+
+       // Fetch movie detail and show modal
+        async function fetchMovieDetail(movieId) {
+            try {
+                // Chama o endpoint para obter detalhes de um filme específico
+                const response = await fetch(`http://localhost:7250/api/detail?id=${movieId}`);
+                const movieDetail = await response.json();
+
+                const movieVideo = document.getElementById('movieVideo');
+                
+                // Assumindo que movieDetail é um array e o primeiro item contém o link do vídeo
+                // 'video' é o nome da propriedade que contém a URL do vídeo
+                movieVideo.src = movieDetail.video; 
+
+                // Cria uma nova instância do Modal do Bootstrap e a exibe
+                const movieModal = new bootstrap.Modal(document.getElementById('movieModal'));
+                movieModal.show();
+            } catch (error) {
+                console.error('Error fetching movie detail:', error);
+            }
+        }
+
+        // Inicializa o carregamento dos filmes assim que a página é carregada
+        fetchMovies(); 
+    </script>
+</body>
+</html>
